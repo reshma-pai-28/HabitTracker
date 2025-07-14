@@ -19,5 +19,6 @@ struct AppFonts {
     static let navigationTitleFont = Font.system(size: 20, weight: .bold)
     static let descriptionFont = Font.system(size: 14).weight(.medium)
     static let textFieldFont = Font.system(size: 17).weight(.semibold)
+    static let mediumFont = Font.system(size: 17).weight(.medium)
 
 }

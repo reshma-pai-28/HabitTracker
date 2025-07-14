@@ -14,4 +14,5 @@ protocol HabitsRepositoryProtocol {
     func toggleHabitCompletion(_ habit: Habit)
     func markAllHabitsAsCompleted(_ completed: Bool)
     func editHabitName(_ newName: String, _ habit: Habit)
+    func markHabitAsCompleted(_ habit: Habit)
 }

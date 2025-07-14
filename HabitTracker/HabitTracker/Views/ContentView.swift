@@ -15,6 +15,8 @@ struct ContentView: View {
     @ObservedObject var viewModel : HabitsViewModel
     
     @State private var isPresentingAddHabitView = false
+    @State private var lastToggledHabit: Habit?
+    @State private var showUndoHabitAlert: Bool = false
     
     var body: some View {
         
@@ -22,17 +24,44 @@ struct ContentView: View {
             
             List {
                 ForEach(viewModel.filteredHabits) { habit in
+                    let isHabitCompleted = viewModel.isCompletedToday(habit)
                     HStack {
                         Button(action: {
-                            viewModel.toggleHabitCompletion(for: habit)
+                            withAnimation {
+                                lastToggledHabit = habit
+                                showUndoHabitAlert = true
+                                viewModel.toggleHabitCompletion(for: habit)
+                            }
                         }) {
-                            Image(systemName: habit.isCompleted ? "checkmark.square.fill" : "square")
-                                .foregroundColor(habit.isCompleted ? .green : .gray)
+                            Image(systemName: isHabitCompleted ? "checkmark.square.fill" : "square")
+                                .foregroundColor(isHabitCompleted ? .green : .gray)
                                 .imageScale(.large)
+                                .transition(.scale.combined(with: .opacity))
+                        }.alert("Undo Habit", isPresented: $showUndoHabitAlert) {
+                            Button("Undo Habit") {
+                                if let habit = lastToggledHabit {
+                                    withAnimation {
+                                        viewModel.toggleHabitCompletion(for: habit)
+                                    }
+                                }
+                            }
+                            Button("Ok") {}
+                        } message: {
+                            if let lastToggledHabit = lastToggledHabit {
+                                if !viewModel.isCompletedToday(lastToggledHabit) {
+                                    Text("You are about to mark \(lastToggledHabit.name ?? "") as not completed.")
+                                }
+//                                else {
+//                                    Text("You are about to mark \(lastToggledHabit.name ?? "") as not completed.")
+//                                }
+                            }
                         }
-                        Text(habit.name ?? "" ).strikethrough(habit.isCompleted)
+
+                        Text(habit.name ?? "" ).strikethrough(isHabitCompleted)
                             .font(AppFonts.titleFont)
-                            .foregroundColor(habit.isCompleted ? Color.gray : AppColors.titleColor)
+                            .foregroundColor(isHabitCompleted ? Color.gray : AppColors.titleColor)
+                        Spacer()
+                        Text("🔥\(viewModel.getStreakCount(forHabit: habit))")
                         
                     }.swipeActions(edge: .leading) {
                         Button("Edit") {
@@ -42,10 +71,12 @@ struct ContentView: View {
                     }
                 }
                 .onDelete(perform: deleteItems)
+                
             }
             .onAppear {
                 viewModel.fetchHabits()
             }
+            
             .animation(.easeInOut, value: viewModel.filteredHabits)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             //.background(AppColors.backgroundColor)
@@ -77,7 +108,7 @@ struct ContentView: View {
                             viewModel.markAllComplete()
                         } label: {
                             Text("✅ Mark all completed")
-                                .font(AppFonts.descriptionFont)
+                                .font(AppFonts.mediumFont)
                                 .foregroundColor(AppColors.appThemeColor)
                         }
                         Spacer()
@@ -133,7 +164,7 @@ private let itemFormatter: DateFormatter = {
             fetchHabitsUsecase: FetchHabitsUsecase(repository: repo),
             addNewHabitUsecase: AddNewHabitUsecase(repository: repo),
             deleteHabitUsecase: DeleteHabitUsecase(repository: repo),
-            updateHabitUsecase: UpdateHabitUsecase(repository: repo)
+            updateHabitUsecase: UpdateHabitUsecase(repository: repo), habitCompletionUsecase: HabitCompletionUsecase(repository: HabitCompletionRepository())
         )
 
     ContentView(viewModel: vm)

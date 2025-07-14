@@ -12,6 +12,8 @@ struct AddNewHabit: View {
     @ObservedObject var viewModel: HabitsViewModel
     @FocusState private var isTextFieldFocussed: Bool
     
+    @State var showEmptyHabitAlert: Bool = false
+    
     var body: some View {
         NavigationView {
             Form {
@@ -33,6 +35,9 @@ struct AddNewHabit: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
+                        if viewModel.habitName.isEmpty {
+                            showEmptyHabitAlert = true
+                        }
                         if !viewModel.habitName.isEmpty && viewModel.selectedHabit == nil{
                             viewModel.addNewHabit(name: viewModel.habitName)
                             dismiss()
@@ -42,6 +47,14 @@ struct AddNewHabit: View {
                         }
                         viewModel.selectedHabit = nil
                     }.tint(AppColors.titleColor)
+                        .alert("Empty Habit Name", isPresented: $showEmptyHabitAlert) {
+                            Button("OK") {
+                                showEmptyHabitAlert = false
+                            }
+                        } message: {
+                            Text("Please enter habit name")
+                        }
+
                 }
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -61,7 +74,7 @@ struct AddNewHabit: View {
         fetchHabitsUsecase: FetchHabitsUsecase(repository: repository),
         addNewHabitUsecase: AddNewHabitUsecase(repository: repository),
         deleteHabitUsecase: DeleteHabitUsecase(repository: repository),
-        updateHabitUsecase: UpdateHabitUsecase(repository: repository)
+        updateHabitUsecase: UpdateHabitUsecase(repository: repository), habitCompletionUsecase: HabitCompletionUsecase(repository: HabitCompletionRepository())
     )
     
     AddNewHabit(viewModel: viewModel).environment(\.managedObjectContext, context)
