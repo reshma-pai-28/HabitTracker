@@ -20,7 +20,7 @@ struct SplashScreenView: View {
                     addNewHabitUsecase: AddNewHabitUsecase(
                         repository: HabitsRepository(context: viewContext)),
                     deleteHabitUsecase: DeleteHabitUsecase(repository: HabitsRepository(context: viewContext)),
-                    updateHabitUsecase: UpdateHabitUsecase(repository: HabitsRepository(context: viewContext))
+                    updateHabitUsecase: UpdateHabitUsecase(repository: HabitsRepository(context: viewContext)), habitCompletionUsecase: HabitCompletionUsecase(repository: HabitCompletionRepository())
                 )
             )
         } else {

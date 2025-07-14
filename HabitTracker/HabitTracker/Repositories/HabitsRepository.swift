@@ -60,6 +60,8 @@ struct HabitsRepository: HabitsRepositoryProtocol {
     
     func toggleHabitCompletion(_ habit: Habit) {
         habit.isCompleted.toggle()
+        markHabitAsCompleted(habit)
+        
         do {
             try viewContext.save()
         } catch {
@@ -70,13 +72,43 @@ struct HabitsRepository: HabitsRepositoryProtocol {
     
     func markAllHabitsAsCompleted(_ completed: Bool) {
         let allHabits = fetchHabits()
-        allHabits.forEach { $0.isCompleted = completed }
+        allHabits.forEach {
+            $0.isCompleted = completed
+            markHabitAsCompleted($0)
+        }
         do {
             try viewContext.save()
         } catch {
             let nsError = error as NSError
             fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
         }
+    }
+    
+    func markHabitAsCompleted(_ habit: Habit) {
+        
+        let calender = Calendar.current
+        let today = calender.startOfDay(for: Date())
+        
+        guard let completions = habit.completions as? Set<HabitCompletion> else {return}
+        
+        
+        if let todayCompletion = completions.first(where: { $0.date != nil && calender.isDate($0.date!, inSameDayAs: today) }) {
+            viewContext.delete(todayCompletion)
+            print("\(habit.name) is removed on \(todayCompletion.date)")
+        } else {
+            let completion = HabitCompletion(context: viewContext)
+            completion.date = Date()
+            completion.habit = habit
+            print("\(habit.name) is added on \(completion.date)")
+        }
+        
+        do {
+            try viewContext.save()
+        } catch {
+            let nsError = error as NSError
+            fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+        }
+        
     }
     
     func editHabitName(_ newName: String, _ habit: Habit) {

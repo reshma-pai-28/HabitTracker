@@ -68,15 +68,18 @@ class HabitsViewModel: ObservableObject {
     let addNewHabitUsecase: AddNewHabitUsecaseProtocol
     let deleteHabitUsecase: DeleteHabitUsecaseProtocol
     let updateHabitUsecase: UpdateHabitUsecaseProtocol
+    let habitCompletionUsecase: HabitCompletionUsecaseProtocol
     
     init(fetchHabitsUsecase: FetchHabitsUsecaseProtocol,
          addNewHabitUsecase: AddNewHabitUsecaseProtocol,
          deleteHabitUsecase: DeleteHabitUsecaseProtocol,
-         updateHabitUsecase: UpdateHabitUsecaseProtocol) {
+         updateHabitUsecase: UpdateHabitUsecaseProtocol,
+         habitCompletionUsecase: HabitCompletionUsecaseProtocol) {
         self.fetchHabitsUsecase = fetchHabitsUsecase
         self.addNewHabitUsecase = addNewHabitUsecase
         self.deleteHabitUsecase = deleteHabitUsecase
         self.updateHabitUsecase = updateHabitUsecase
+        self.habitCompletionUsecase = habitCompletionUsecase
     }
     
     func fetchHabits() {
@@ -114,4 +117,13 @@ class HabitsViewModel: ObservableObject {
             fetchHabits()
         }
     }
+    
+    func isCompletedToday(_ habit: Habit) -> Bool {
+        habitCompletionUsecase.isCompletedToday(for: habit)
+    }
+    
+    func getStreakCount(forHabit habit: Habit) -> Int {
+        habitCompletionUsecase.getStreakCount(for: habit)
+    }
+
 }

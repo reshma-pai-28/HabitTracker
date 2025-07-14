@@ -18,6 +18,7 @@ extension Habit {
 
     @NSManaged public var name: String?
     @NSManaged public var isCompleted: Bool
+    @NSManaged public var completions: NSSet?
 
 }
 
