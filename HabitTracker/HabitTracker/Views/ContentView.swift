@@ -10,8 +10,6 @@ import CoreData
 import Combine
 
 struct ContentView: View {
-    //Core Data
-    @Environment(\.managedObjectContext) private var viewContext
     @ObservedObject var viewModel : HabitsViewModel
     
     @State private var isPresentingAddHabitView = false
@@ -36,8 +34,8 @@ struct ContentView: View {
                         
                     }.swipeActions(edge: .leading) {
                         Button("Edit") {
+                            viewModel.startEditing(habit)
                             isPresentingAddHabitView = true
-                            viewModel.selectedHabit = habit
                         }.tint(AppColors.appThemeColor)
                     }
                 }
@@ -59,6 +57,7 @@ struct ContentView: View {
                 
                 ToolbarItem {
                     Button(action: {
+                        viewModel.startAddingHabit()
                         isPresentingAddHabitView = true
                     }) {
                         Label("Add Item", systemImage: "plus")
@@ -109,10 +108,10 @@ struct ContentView: View {
     }
 
     private func deleteItems(offsets: IndexSet) {
-       
+        let visibleHabits = viewModel.filteredHabits
+
         withAnimation {
-            offsets.map { viewModel.habits[$0]
-            }.forEach { habit in
+            offsets.map { visibleHabits[$0] }.forEach { habit in
                 viewModel.deleteHabit(habit)
             }
         }

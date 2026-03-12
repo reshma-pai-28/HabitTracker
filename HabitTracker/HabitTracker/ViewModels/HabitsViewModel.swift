@@ -30,39 +30,18 @@ enum HabitFilter: String, CaseIterable, Identifiable {
 class HabitsViewModel: ObservableObject {
     
     @Published private(set) var habits: [Habit] = []
-    @Published var habitName: String = ""
     @Published var isAllHabitsCompleted: Bool = false
-    @Published var showIncompleteHabits: Bool = false
     @Published var selectedHabit: Habit?
+    @Published var draftHabitName: String = ""
     @Published var selectedFilter: HabitFilter = .all
     
-    
-    
-    var editingHabitNameBinding: Binding<String> {
-        Binding<String>(
-            get: {
-                self.selectedHabit?.name ?? self.habitName
-            },
-            set: { newValue in
-                if self.selectedHabit != nil {
-                    self.selectedHabit?.name = newValue
-                } else {
-                    self.habitName = newValue
-                }
-            }
-        )
-    }
-    
     var filteredHabits: [Habit] {
-        //showIncompleteHabits ? habits.filter({$0.isCompleted == false}) : habits
         switch selectedFilter {
         case .all: return habits
         case .completed: return habits.filter({$0.isCompleted == true})
         case .incomplete: return habits.filter({$0.isCompleted == false})
         }
     }
-    
-    private var onSave: (String) -> Void = { _ in }
     
     let fetchHabitsUsecase: FetchHabitsUsecaseProtocol
     let addNewHabitUsecase: AddNewHabitUsecaseProtocol
@@ -85,7 +64,7 @@ class HabitsViewModel: ObservableObject {
     
     func addNewHabit(name: String) {
         addNewHabitUsecase.addNewHabit(name: name)
-        clearTextField()
+        clearDraft()
         fetchHabits()
     }
     
@@ -94,8 +73,9 @@ class HabitsViewModel: ObservableObject {
         fetchHabits()
     }
     
-    func clearTextField() {
-        habitName = ""
+    func clearDraft() {
+        draftHabitName = ""
+        selectedHabit = nil
     }
     
     func toggleHabitCompletion(for habit: Habit) {
@@ -105,13 +85,27 @@ class HabitsViewModel: ObservableObject {
     
     func markAllComplete() {
         updateHabitUsecase.markAllHabitsComplete(isAllHabitsCompleted)
+        fetchHabits()
     }
     
-    func editHabitName(_ name: String) {
+    func startAddingHabit() {
+        selectedHabit = nil
+        draftHabitName = ""
+    }
+    
+    func startEditing(_ habit: Habit) {
+        selectedHabit = habit
+        draftHabitName = habit.name ?? ""
+    }
+    
+    func saveHabit() {
         if let selectedHabit {
-            updateHabitUsecase.updateHabit(name: editingHabitNameBinding.wrappedValue, habit: selectedHabit)
-            clearTextField()
+            updateHabitUsecase.updateHabit(name: draftHabitName, habit: selectedHabit)
+            fetchHabits()
+        } else {
+            addNewHabitUsecase.addNewHabit(name: draftHabitName)
             fetchHabits()
         }
+        clearDraft()
     }
 }

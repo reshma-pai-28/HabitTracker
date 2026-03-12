@@ -15,7 +15,7 @@ struct AddNewHabit: View {
     var body: some View {
         NavigationView {
             Form {
-                TextField("Enter habit name", text: viewModel.editingHabitNameBinding)
+                TextField("Enter habit name", text: $viewModel.draftHabitName)
                     .font(AppFonts.textFieldFont)
                     .foregroundColor(AppColors.titleColor)
                     .focused($isTextFieldFocussed)
@@ -33,19 +33,19 @@ struct AddNewHabit: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        if !viewModel.habitName.isEmpty && viewModel.selectedHabit == nil{
-                            viewModel.addNewHabit(name: viewModel.habitName)
-                            dismiss()
-                        } else if viewModel.selectedHabit != nil {
-                            viewModel.editHabitName(viewModel.habitName)
-                            dismiss()
+                        let trimmedName = viewModel.draftHabitName.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !trimmedName.isEmpty else {
+                            return
                         }
-                        viewModel.selectedHabit = nil
+
+                        viewModel.draftHabitName = trimmedName
+                        viewModel.saveHabit()
+                        dismiss()
                     }.tint(AppColors.titleColor)
                 }
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
-                        viewModel.clearTextField()
+                        viewModel.clearDraft()
                         dismiss()
                     }.tint(AppColors.cancelButtonColor)
                 }

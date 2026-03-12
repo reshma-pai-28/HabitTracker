@@ -7,22 +7,12 @@
 import SwiftUI
 
 struct SplashScreenView: View {
-    @Environment(\.managedObjectContext) private var viewContext
+    @ObservedObject var viewModel: HabitsViewModel
     @State private var isActive: Bool = false
     
     var body: some View {
         if isActive {
-            
-            ContentView(
-                viewModel: HabitsViewModel(
-                    fetchHabitsUsecase: FetchHabitsUsecase(
-                        repository: HabitsRepository(context: viewContext)),
-                    addNewHabitUsecase: AddNewHabitUsecase(
-                        repository: HabitsRepository(context: viewContext)),
-                    deleteHabitUsecase: DeleteHabitUsecase(repository: HabitsRepository(context: viewContext)),
-                    updateHabitUsecase: UpdateHabitUsecase(repository: HabitsRepository(context: viewContext))
-                )
-            )
+            ContentView(viewModel: viewModel)
         } else {
             VStack {
                 Image(systemName: "leaf.fill")
